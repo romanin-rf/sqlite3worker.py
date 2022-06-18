@@ -1,18 +1,11 @@
 import os
 import sqlite3
-from typing import Any, Union, Iterable, Literal, Optional
-
-class __info__:
-	name = "SQLite3Worker"
-	version = ("0.9-beta", 0.9)
-	authors = ("Роман Слабицкий",)
-
-class __types__:
-	INTEGER = ["INTEGER", "INT", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED BIG INT", "INT2", "INT8"]
-	FLOAT = ["REAL", "DOUBLE", "DOUBLE PRECISION", "FLOATNONE"]
-	STRING = ["TEXT", "CHARACTER(20)", "VARCHAR(255)", "VARYING CHARACTER(255)", "NCHAR(55)", "NATIVE CHARACTER(70)", "NVARCHAR(100)", "CLOB"]
-	BOOLEAN = ["BOOLEAN"]
-	BYTES = ["BLOB"]
+from typing import Any, Union, Iterable, Literal, Optional, List, Tuple, Dict
+# ! Локальные импорты
+try:
+	import Units
+except:
+	from . import Units
 
 class __func__:
 	def to_sqltype(tp: Any, primary: bool=False) -> str:
@@ -26,19 +19,21 @@ class __func__:
 			return "BOOLEAN"
 		elif tp == bytes:
 			return "BLOB"
+		elif tp is None:
+			return "NULL"
 		else:
 			raise TypeError("This type of data is not supported")
 	
 	def to_pythontype(tp: str) -> Any:
-		if tp.upper() in __types__.INTEGER:
+		if tp.upper() in Units.INTEGER:
 			return int
-		elif tp.upper() in __types__.FLOAT:
+		elif tp.upper() in Units.FLOAT:
 			return float
-		elif tp.upper() in __types__.STRING:
+		elif tp.upper() in Units.STRING:
 			return str
-		elif tp.upper() in __types__.BOOLEAN:
+		elif tp.upper() in Units.BOOLEAN:
 			return bool
-		elif tp.upper() in __types__.BYTES:
+		elif tp.upper() in Units.BYTES:
 			return bytes
 		else:
 			return None
@@ -59,8 +54,8 @@ class SQLite3Worker():
 		self,
 		request_text: str,
 		mode: Optional[Literal["a", "r", "w"]]=None,
-		params: Optional[list[Any]]=None
-	) -> Union[None, list, list[list]]:
+		params: Optional[Iterable[Any]]=None
+	) -> Optional[List[Tuple]]:
 		"""`Функция для запросов` к базе данных SQLite"""
 		mode = mode or "a"
 		if params is None:
@@ -83,7 +78,7 @@ class SQLite3Worker():
 	def create_table(
 		self,
 		table_name: str,
-		colons: dict[str, tuple[Any, bool]]
+		colons: Dict[str, Tuple[Any, bool]]
 	) -> None:
 		"""`Создание таблицы`, ЕСЛИ ЕЁ НЕТУ в базе данных SQLite"""
 		colons_list = []
@@ -93,7 +88,7 @@ class SQLite3Worker():
 			)
 		self.request("CREATE TABLE IF NOT EXISTS \"{0}\" ({1});".format(table_name, ", ".join(colons_list)), "w")
 
-	def get_tables_list(self) -> Union[list[str], list]:
+	def get_tables_list(self) -> List[str]:
 		"""`Список таблиц` в базе данных SQLite"""
 		tables_info, tables_list = self.request("SELECT * FROM sqlite_master WHERE type = 'table';", "r"), []
 		for i in tables_info:
@@ -107,7 +102,7 @@ class SQLite3Worker():
 	def get_colons_list(
 		self,
 		table_name: str
-	) -> Union[list[dict[str, Any]], list]:
+	) -> List[Dict[str, Any]]:
 		"""`Возвращает список с информацией о колонках` в таблице базе данных SQLite"""
 		colons, colons_list = self.request(f"PRAGMA table_info(\"{table_name}\");", "r"), []
 		for i in colons:
@@ -125,7 +120,7 @@ class SQLite3Worker():
 	def get_colons_names(
 		self,
 		table_name: str
-	) -> Union[list[str], list]:
+	) -> List[str]:
 		"""`Возвращает список с именами колонок` в таблице базе данных SQLite"""
 		return [i["name"] for i in self.get_colons_list(table_name)]
 
@@ -158,7 +153,7 @@ class SQLite3Worker():
 		table_name: str,
 		colon_name: str,
 		value: Any
-	) -> Union[list[tuple[Any]], list]:
+	) -> List[Tuple[Any]]:
 		"""`Возращает данные из таблицы` базы данных SQLite"""
 		return self.request("SELECT * FROM {0} WHERE {1} = ?;".format(table_name, colon_name), "r", [value])
 	
@@ -175,7 +170,7 @@ class SQLite3Worker():
 		table_name: str,
 		colon_name: str,
 		value: Any
-	) -> Union[tuple[Literal[False], None], tuple[Literal[True], list]]:
+	) -> Union[Tuple[Literal[False], None], Tuple[Literal[True], list]]:
 		"""`Проверяет наличия данных в таблице` базе данных SQLite"""
 		data = self.request(f"SELECT * FROM \"{table_name}\" WHERE \"{colon_name}\"= ?;", "r", [value])
 		anwer = (len(data) != 0)
@@ -186,7 +181,7 @@ class SQLite3Worker():
 		table_name: str,
 		colon_name: str,
 		value: Any,
-		new_value: dict[str, Any]
+		new_value: Dict[str, Any]
 	) -> None:
 		"""`Обновляет данные в таблице` базе данных SQLite"""
 		invalue = list(new_value.items())
