@@ -17,7 +17,7 @@ db.create_table(
     {
         "id": (int, True), # "id": (int, True) -> "COLON_NAME": (PYTHON_TYPE, IS_PRIMARY_KEY)
         "nick": (str, False),
-        "desc": (str, False)
+        "desc": (str, False),
         "birthday": (float, False)
     }
 )
