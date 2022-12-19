@@ -2,10 +2,7 @@ import os
 import sqlite3
 from typing import Any, Union, Iterable, Literal, Optional, List, Tuple, Dict
 # ! Локальные импорты
-try:
-	import Units
-except:
-	from . import Units
+from . import Units
 
 class __func__:
 	def to_sqltype(tp: Any, primary: bool=False) -> str:
