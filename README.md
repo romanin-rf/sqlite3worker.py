@@ -3,7 +3,7 @@ Module with basic functionality to work with SQLite3.
 
 # Installation
 ```cmd
-pip install --upgrade https://github.com/romanin-rf/sqlite3worker.py/releases/download/v1.0.0.0-release/sqlite3worker-1.0.0.0_release-py3-none-any.whl
+pip install --upgrade sqlite3w
 ```
 
 # Example
