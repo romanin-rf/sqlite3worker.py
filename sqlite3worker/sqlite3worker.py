@@ -75,6 +75,9 @@ class SQLite3Worker():
 			out = None
 		return out
 
+	def table_length(self, table_name: str) -> int:
+		return self.request(f"select count(*) from {table_name}", "r")[0][0]
+
 	def create_table(
 		self,
 		table_name: str,

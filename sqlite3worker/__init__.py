@@ -1,5 +1,5 @@
 from .sqlite3worker import SQLite3Worker
 
-__name__ = "sqlite3worker"
-__version__ = "1.0.0.0-release"
+__name__ = "sqlite3w"
+__version__ = "1.0.5"
 __email__ = "semina054@gmail.com"
